@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230428094151-3a098f9cde70
+	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/golang/protobuf v1.5.2 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
