@@ -9,7 +9,8 @@ type UserModel struct {
 
 // ListRecordsModel - model list records id. Used for delete all user records.
 type ListRecordsModel struct {
-	ListID []int32
+	ListID []int32 // list records id
+	UUID   string  // uuid current user
 }
 
 // DataRecordModel - model for show information by one record.
@@ -23,50 +24,54 @@ type DataRecordModel struct {
 
 // ReqLogPwdModel - model login/password pair for request.
 type ReqLogPwdModel struct {
-	LogPwdModel
-	ReqTechDataModel
+	UUID     string
+	Data     LogPwdModel
+	TechData ReqTechDataModel
 }
 
 // RespLogPwdModel - model login/password pair for response.
 type RespLogPwdModel struct {
-	LogPwdModel
-	RespTechDataModel
+	Data     LogPwdModel
+	TechData RespTechDataModel
 }
 
 // ReqCardModel - model card data for request.
 type ReqCardModel struct {
-	CardModel
-	ReqTechDataModel
+	UUID     string
+	Data     CardModel
+	TechData ReqTechDataModel
 }
 
 // RespCardModel - model card data for response.
 type RespCardModel struct {
-	CardModel
-	RespTechDataModel
+	Data     CardModel
+	TechData RespTechDataModel
 }
 
 // ReqTextModel - model text data for request.
 type ReqTextModel struct {
-	TextDataModel
-	ReqTechDataModel
+	UUID     string
+	Data     TextDataModel
+	TechData ReqTechDataModel
 }
 
 // RespTextModel - model text data for response.
 type RespTextModel struct {
-	TextDataModel
-	RespTechDataModel
+	Data     TextDataModel
+	TechData RespTechDataModel
 }
 
 // ReqBinaryModel - model binary data for request.
 type ReqBinaryModel struct {
-	BinaryDataModel
-	ReqTechDataModel
+	UUID     string
+	Data     BinaryDataModel
+	TechData ReqTechDataModel
 }
 
 // RespBinaryModel - model binary data for response.
 type RespBinaryModel struct {
-	BinaryDataModel
-	RespTechDataModel
+	Data     BinaryDataModel
+	TechData RespTechDataModel
 }
 
 // ReqTechDataModel - model with general information for requests.
@@ -95,7 +100,8 @@ type InsertRespModel struct {
 
 // IDModel - model id record in database.
 type IDModel struct {
-	ID int32 // id record in database
+	ID   int32  // id record in database
+	UUID string // uuid current user
 }
 
 // LogPassModel - model login/password pair.
@@ -107,7 +113,7 @@ type LogPwdModel struct {
 // CardModel - model card data.
 type CardModel struct {
 	Num       string // card number
-	Data      string // validity period
+	Date      string // validity period
 	CVC       string // cvc card code
 	FirstName string
 	LastName  string

@@ -90,6 +90,7 @@ func paramConfigServerInfo(cfg *ServerConfig) {
 	fmt.Printf("Config file: %s\n", cfg.ConfigFile)
 }
 
+// readConfigFile - read configuration file.
 func readConfigFile(file string, config *ServerConfig) error {
 	data, err := os.ReadFile(file)
 	if err != nil {
