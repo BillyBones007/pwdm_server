@@ -16,7 +16,7 @@ const DefaultConfigFile = "config.json"
 // ServerConfig - configuration server structure.
 type ServerConfig struct {
 	PortgRPC   string `env:"GRPC_PORT" json:"grpc_port,omitempty"`
-	DSN        string `env:"DSN" json:"dns,omitempty"`
+	DSN        string `env:"DSN" json:"dsn,omitempty"`
 	ConfigFile string `env:"CONFIG_FILE"`
 }
 

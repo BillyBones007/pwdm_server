@@ -30,14 +30,14 @@ func (d *DeleteService) DelItem(ctx context.Context, in *pb.DeleteItemReq) (*pb.
 	resp := &pb.DeleteResp{}
 	uuid := metadatatools.GetUUIDFromMetadata(ctx)
 	if uuid == "" {
-		resp.Error = customerror.MissingTokenErr
-		return resp, status.Error(codes.Unauthenticated, customerror.MissingTokenErr)
+		resp.Error = customerror.ErrMissingToken
+		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
 	}
 
 	modelDelItem := models.IDModel{ID: in.Id, UUID: uuid}
 	if err := d.Rep.DeleteRecord(ctx, modelDelItem); err != nil {
 		resp.Error = err.Error()
-		return resp, status.Error(codes.Internal, customerror.InternalServerErr)
+		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
 	}
 	return resp, nil
 }
@@ -47,14 +47,14 @@ func (d *DeleteService) DelAll(ctx context.Context, in *pb.DeleteAllReq) (*pb.De
 	resp := &pb.DeleteResp{}
 	uuid := metadatatools.GetUUIDFromMetadata(ctx)
 	if uuid == "" {
-		resp.Error = customerror.MissingTokenErr
-		return resp, status.Error(codes.Unauthenticated, customerror.MissingTokenErr)
+		resp.Error = customerror.ErrMissingToken
+		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
 	}
 
 	modelDelAll := models.ListRecordsModel{ListID: in.ListId, UUID: uuid}
 	if err := d.Rep.DeleteAllRecords(ctx, modelDelAll); err != nil {
 		resp.Error = err.Error()
-		return resp, status.Error(codes.Internal, customerror.InternalServerErr)
+		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
 	}
 	return resp, nil
 }

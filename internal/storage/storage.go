@@ -8,8 +8,9 @@ import (
 
 // Storage - interface for working with the storage.
 type Storage interface {
-	CreateUser(ctx context.Context, model models.UserModel) error
+	CreateUser(ctx context.Context, model models.UserModel) (string, error)
 	ValidUser(ctx context.Context, model models.UserModel) (bool, error)
+	UserIsExists(ctx context.Context, model models.UserModel) (bool, error)
 	GetUUID(ctx context.Context, model models.UserModel) (string, error)
 	DeleteUser(ctx context.Context, uuid string) error
 	InsertLogPwdPair(ctx context.Context, model models.ReqLogPwdModel) (models.InsertRespModel, error)

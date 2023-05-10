@@ -89,19 +89,21 @@ type RespTechDataModel struct {
 	Comment string
 	Error   error
 	ID      int32
+	Type    int32
 }
 
 // InsertRespModel - model insert data response.
 type InsertRespModel struct {
 	Title string
-	Error error
-	ID    int32
+	// Error error
+	ID int32
 }
 
 // IDModel - model id record in database.
 type IDModel struct {
-	ID   int32  // id record in database
 	UUID string // uuid current user
+	ID   int32  // id record in database
+	Type int32  // type data
 }
 
 // LogPassModel - model login/password pair.

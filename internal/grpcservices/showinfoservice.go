@@ -29,14 +29,14 @@ func (s *ShowInfoService) GetInfo(ctx context.Context, in *pb.Empty) (*pb.ShowIt
 	resp := &pb.ShowItemsResp{}
 	uuid := metadatatools.GetUUIDFromMetadata(ctx)
 	if uuid == "" {
-		return nil, status.Error(codes.Unauthenticated, customerror.MissingTokenErr)
+		return nil, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
 	}
 
 	// result list from database
 	listResult, err := s.Rep.SelectAllInfoUser(ctx, uuid)
 	if err != nil {
 		resp.Error = err.Error()
-		return resp, status.Error(codes.Internal, customerror.InternalServerErr)
+		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
 	}
 
 	listItems := make([]*pb.ShowItemsResp_ItemModel, 0)

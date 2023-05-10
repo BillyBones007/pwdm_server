@@ -1,9 +1,20 @@
 package customerror
 
+import (
+	"errors"
+
+	"github.com/jackc/pgx/v5"
+)
+
 const (
-	InternalServerErr string = "internal server error"
-	MissingTokenErr   string = "missing token"
-	SignInErr         string = "error sing in"
-	CreateUserErr     string = "create user error"
-	UserIsExist       string = "user is exists"
+	ErrInternalServer string = "internal server error"
+	ErrMissingToken   string = "missing token"
+	ErrSignIn         string = "error sing in"
+	ErrCreateUser     string = "create user error"
+	ErrUserIsExist    string = "user is exists"
+)
+
+var (
+	ErrNoRows               error = pgx.ErrNoRows
+	ErrLoginOrPassIncorrect error = errors.New("login or password incorrect")
 )

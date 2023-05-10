@@ -30,8 +30,8 @@ func (g *GiveTakeService) InsLogPwd(ctx context.Context, in *pb.InsertLoginPassw
 	resp := &pb.InsertResp{}
 	uuid := metadatatools.GetUUIDFromMetadata(ctx)
 	if uuid == "" {
-		resp.Error = customerror.MissingTokenErr
-		return resp, status.Error(codes.Unauthenticated, customerror.MissingTokenErr)
+		resp.Error = customerror.ErrMissingToken
+		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
 	}
 
 	modelTechData := models.ReqTechDataModel{Title: in.Title, Tag: in.Tag, Comment: in.Comment, Type: in.Type}
@@ -41,7 +41,7 @@ func (g *GiveTakeService) InsLogPwd(ctx context.Context, in *pb.InsertLoginPassw
 	res, err := g.Rep.InsertLogPwdPair(ctx, modelInsLogPwd)
 	if err != nil {
 		resp.Error = err.Error()
-		return resp, status.Error(codes.Internal, customerror.InternalServerErr)
+		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
 	}
 
 	resp.Id = res.ID
@@ -54,8 +54,8 @@ func (g *GiveTakeService) InsCard(ctx context.Context, in *pb.InsertCardReq) (*p
 	resp := &pb.InsertResp{}
 	uuid := metadatatools.GetUUIDFromMetadata(ctx)
 	if uuid == "" {
-		resp.Error = customerror.MissingTokenErr
-		return resp, status.Error(codes.Unauthenticated, customerror.MissingTokenErr)
+		resp.Error = customerror.ErrMissingToken
+		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
 	}
 
 	modelTechData := models.ReqTechDataModel{Title: in.Title, Tag: in.Tag, Comment: in.Comment, Type: in.Type}
@@ -65,7 +65,7 @@ func (g *GiveTakeService) InsCard(ctx context.Context, in *pb.InsertCardReq) (*p
 	res, err := g.Rep.InsertCardData(ctx, modelInsCard)
 	if err != nil {
 		resp.Error = err.Error()
-		return resp, status.Error(codes.Internal, customerror.InternalServerErr)
+		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
 	}
 
 	resp.Id = res.ID
@@ -78,8 +78,8 @@ func (g *GiveTakeService) InsText(ctx context.Context, in *pb.InsertTextReq) (*p
 	resp := &pb.InsertResp{}
 	uuid := metadatatools.GetUUIDFromMetadata(ctx)
 	if uuid == "" {
-		resp.Error = customerror.MissingTokenErr
-		return resp, status.Error(codes.Unauthenticated, customerror.MissingTokenErr)
+		resp.Error = customerror.ErrMissingToken
+		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
 	}
 
 	modelTechData := models.ReqTechDataModel{Title: in.Title, Tag: in.Tag, Comment: in.Comment, Type: in.Type}
@@ -89,7 +89,7 @@ func (g *GiveTakeService) InsText(ctx context.Context, in *pb.InsertTextReq) (*p
 	res, err := g.Rep.InsertTextData(ctx, modelInsText)
 	if err != nil {
 		resp.Error = err.Error()
-		return resp, status.Error(codes.Internal, customerror.InternalServerErr)
+		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
 	}
 
 	resp.Id = res.ID
@@ -102,8 +102,8 @@ func (g *GiveTakeService) InsBinary(ctx context.Context, in *pb.InsertBinaryReq)
 	resp := &pb.InsertResp{}
 	uuid := metadatatools.GetUUIDFromMetadata(ctx)
 	if uuid == "" {
-		resp.Error = customerror.MissingTokenErr
-		return resp, status.Error(codes.Unauthenticated, customerror.MissingTokenErr)
+		resp.Error = customerror.ErrMissingToken
+		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
 	}
 
 	modelTechData := models.ReqTechDataModel{Title: in.Title, Tag: in.Tag, Comment: in.Comment, Type: in.Type}
@@ -113,7 +113,7 @@ func (g *GiveTakeService) InsBinary(ctx context.Context, in *pb.InsertBinaryReq)
 	res, err := g.Rep.InsertBinaryData(ctx, modelInsBinary)
 	if err != nil {
 		resp.Error = err.Error()
-		return resp, status.Error(codes.Internal, customerror.InternalServerErr)
+		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
 	}
 
 	resp.Id = res.ID
@@ -126,15 +126,15 @@ func (g *GiveTakeService) GetLogPwd(ctx context.Context, in *pb.GetItemReq) (*pb
 	resp := &pb.GetLoginPasswordResp{}
 	uuid := metadatatools.GetUUIDFromMetadata(ctx)
 	if uuid == "" {
-		resp.Error = customerror.MissingTokenErr
-		return resp, status.Error(codes.Unauthenticated, customerror.MissingTokenErr)
+		resp.Error = customerror.ErrMissingToken
+		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
 	}
 
 	modelGetItem := models.IDModel{ID: in.Id, UUID: uuid}
 	res, err := g.Rep.SelectLogPwdPair(ctx, modelGetItem)
 	if err != nil {
 		resp.Error = err.Error()
-		return resp, status.Error(codes.Internal, customerror.InternalServerErr)
+		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
 	}
 
 	resp.Id = res.TechData.ID
@@ -151,15 +151,15 @@ func (g *GiveTakeService) GetCard(ctx context.Context, in *pb.GetItemReq) (*pb.G
 	resp := &pb.GetCardResp{}
 	uuid := metadatatools.GetUUIDFromMetadata(ctx)
 	if uuid == "" {
-		resp.Error = customerror.MissingTokenErr
-		return resp, status.Error(codes.Unauthenticated, customerror.MissingTokenErr)
+		resp.Error = customerror.ErrMissingToken
+		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
 	}
 
 	modelGetItem := models.IDModel{ID: in.Id, UUID: uuid}
 	res, err := g.Rep.SelectCardData(ctx, modelGetItem)
 	if err != nil {
 		resp.Error = err.Error()
-		return resp, status.Error(codes.Internal, customerror.InternalServerErr)
+		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
 	}
 
 	resp.Id = res.TechData.ID
@@ -179,15 +179,15 @@ func (g *GiveTakeService) GetText(ctx context.Context, in *pb.GetItemReq) (*pb.G
 	resp := &pb.GetTextResp{}
 	uuid := metadatatools.GetUUIDFromMetadata(ctx)
 	if uuid == "" {
-		resp.Error = customerror.MissingTokenErr
-		return resp, status.Error(codes.Unauthenticated, customerror.MissingTokenErr)
+		resp.Error = customerror.ErrMissingToken
+		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
 	}
 
 	modelGetItem := models.IDModel{ID: in.Id, UUID: uuid}
 	res, err := g.Rep.SelectTextData(ctx, modelGetItem)
 	if err != nil {
 		resp.Error = err.Error()
-		return resp, status.Error(codes.Internal, customerror.InternalServerErr)
+		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
 	}
 
 	resp.Id = res.TechData.ID
@@ -203,15 +203,15 @@ func (g *GiveTakeService) GetBinary(ctx context.Context, in *pb.GetItemReq) (*pb
 	resp := &pb.GetBinaryResp{}
 	uuid := metadatatools.GetUUIDFromMetadata(ctx)
 	if uuid == "" {
-		resp.Error = customerror.MissingTokenErr
-		return resp, status.Error(codes.Unauthenticated, customerror.MissingTokenErr)
+		resp.Error = customerror.ErrMissingToken
+		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
 	}
 
 	modelGetItem := models.IDModel{ID: in.Id, UUID: uuid}
 	res, err := g.Rep.SelectBinaryData(ctx, modelGetItem)
 	if err != nil {
 		resp.Error = err.Error()
-		return resp, status.Error(codes.Internal, customerror.InternalServerErr)
+		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
 	}
 
 	resp.Id = res.TechData.ID

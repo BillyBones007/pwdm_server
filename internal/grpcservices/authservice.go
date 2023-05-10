@@ -26,24 +26,24 @@ func NewAuthService(r storage.Storage, tt *tokentools.JWTTools) *AuthService {
 
 // Create - create new user.
 func (a *AuthService) Create(ctx context.Context, in *pb.AuthReq) (*pb.AuthResp, error) {
+	var uuid string
 	user := models.UserModel{Login: in.Login, Password: in.Password}
 	resp := &pb.AuthResp{}
 
-	// valid new user
-	exist, _ := a.Rep.ValidUser(ctx, user)
-	if exist {
-		resp.Error = customerror.CreateUserErr
-		return resp, fmt.Errorf(customerror.UserIsExist)
-	}
-
-	// create a new user
-	if err := a.Rep.CreateUser(ctx, user); err != nil {
-		resp.Error = err.Error()
+	// checks login a new user
+	existFlag, err := a.Rep.UserIsExists(ctx, user)
+	if err != nil {
+		resp.Error = customerror.ErrCreateUser
 		return resp, err
 	}
 
-	// get uuid from new record database
-	uuid, err := a.Rep.GetUUID(ctx, user)
+	if existFlag {
+		resp.Error = customerror.ErrCreateUser
+		return resp, fmt.Errorf(customerror.ErrUserIsExist)
+	}
+
+	// create a new user
+	uuid, err = a.Rep.CreateUser(ctx, user)
 	if err != nil {
 		resp.Error = err.Error()
 		return resp, err
@@ -68,7 +68,7 @@ func (a *AuthService) Enter(ctx context.Context, in *pb.AuthReq) (*pb.AuthResp, 
 
 	ok, err := a.Rep.ValidUser(ctx, user)
 	if !ok {
-		resp.Error = customerror.SignInErr
+		resp.Error = customerror.ErrSignIn
 		return resp, err
 	}
 

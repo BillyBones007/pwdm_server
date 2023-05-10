@@ -42,37 +42,6 @@ func (j *JWTTools) CreateToken(expAt int64, uuid string) (string, error) {
 	return tokenStr, nil
 }
 
-// ValidToken - token validation.
-// func (j *JWTTools) ValidToken(tokenStr string) (bool, error) {
-// 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-// 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-// 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-// 		}
-// 		return j.secretKey, nil
-// 	})
-// 	if err != nil {
-// 		return false, err
-// 	}
-
-// 	if !token.Valid {
-// 		return false, fmt.Errorf("invalid token")
-// 	}
-
-// 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-// 		expTime := time.Unix(int64(claims["exp"].(float64)), 0)
-// 		if expTime.Before(time.Now()) {
-// 			return false, fmt.Errorf("token is expired")
-// 		}
-// 		uuid := claims["uuid"]
-// 		if uuid.(string) == "" {
-// 			return false, fmt.Errorf("uuid field is empty")
-// 		}
-// 		return true, nil
-// 	} else {
-// 		return false, fmt.Errorf("invalid token claims")
-// 	}
-// }
-
 // ParseUUID - parse uuid from token string.
 func (j *JWTTools) ParseUUID(tokenStr string) (string, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {

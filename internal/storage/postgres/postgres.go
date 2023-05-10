@@ -2,10 +2,15 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
+	"github.com/BillyBones007/pwdm_server/internal/customerror"
 	"github.com/BillyBones007/pwdm_server/internal/storage/models"
+	"github.com/BillyBones007/pwdm_server/internal/tools/convertuuid"
+	"github.com/BillyBones007/pwdm_server/internal/tools/encpass"
+	"github.com/BillyBones007/pwdm_server/internal/typedata"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -29,7 +34,10 @@ func NewClientPostgres(dst string) *ClientPostgres {
 		log.Fatal(err)
 	}
 	cp := ClientPostgres{Pool: pool, ConfigCP: config}
-	cp.createTable()
+	err = cp.createTable()
+	if err != nil {
+		log.Fatal(err)
+	}
 	return &cp
 }
 
@@ -41,7 +49,7 @@ func (c *ClientPostgres) createTable() error {
 	}
 	err = m.Up()
 	if err != migrate.ErrNoChange {
-		log.Printf("ERROR: migration up: %v\n", err)
+		return err
 	}
 	return nil
 }
@@ -53,80 +61,253 @@ func (c *ClientPostgres) Close() {
 }
 
 // CreateUser - creating a new user in database.
-func (c *ClientPostgres) CreateUser(ctx context.Context, model models.UserModel) error {
-	return nil
+func (c *ClientPostgres) CreateUser(ctx context.Context, model models.UserModel) (string, error) {
+	var uuid string
+	exUser, err := c.ValidUser(ctx, model)
+	if err != nil {
+		return "", err
+	}
+
+	if exUser {
+		return "", fmt.Errorf(customerror.ErrUserIsExist)
+	}
+
+	encPass, err := encpass.EncPassword(model.Password)
+	if err != nil {
+		return "", fmt.Errorf(customerror.ErrInternalServer)
+	}
+
+	q := "INSERT INTO users (uuid, login, password) VALUES (uuid_generate_v4(), $1, $2) RETURNING uuid;"
+	if err := c.Pool.QueryRow(ctx, q, model.Login, encPass).Scan(&uuid); err != nil {
+		return "", err
+	}
+
+	return uuid, nil
 }
 
-// ValidUser - user validation.
+// ValidUser - user validation. Checks the correctness of the login and password.
 func (c *ClientPostgres) ValidUser(ctx context.Context, model models.UserModel) (bool, error) {
+	var encPass string
+	q := "SELECT password FROM users WHERE login = $1;"
+	if err := c.Pool.QueryRow(ctx, q, model.Login).Scan(&encPass); err != nil {
+		if errors.Is(err, customerror.ErrNoRows) {
+			return false, customerror.ErrLoginOrPassIncorrect
+		}
+		return false, err
+	}
+
+	if !encpass.ComparePassword(model.Password, encPass) {
+		return false, customerror.ErrLoginOrPassIncorrect
+	}
 	return true, nil
+}
+
+// UserIsExists - Checks if the user exists.
+func (c *ClientPostgres) UserIsExists(ctx context.Context, model models.UserModel) (bool, error) {
+	var flag bool
+	q := "SELECT EXISTS(SELECT login FROM users WHERE login = $1);"
+	if err := c.Pool.QueryRow(ctx, q, model.Login).Scan(&flag); err != nil {
+		return flag, err
+	}
+	return flag, nil
 }
 
 // GetUUID - get uuid current user from database.
 func (c *ClientPostgres) GetUUID(ctx context.Context, model models.UserModel) (string, error) {
-	return "", nil
+	var uuid [16]byte
+	q := "SELECT uuid FROM users WHERE login = $1;"
+	if err := c.Pool.QueryRow(ctx, q, model.Login).Scan(&uuid); err != nil {
+		return "", err
+	}
+
+	return convertuuid.UUID(uuid).String(), nil
 }
 
 // DeleteUser - delete user from database.
 func (c *ClientPostgres) DeleteUser(ctx context.Context, uuid string) error {
+	q := "DELETE FROM users WHERE uuid = $1;"
+	_, err := c.Pool.Exec(ctx, q, uuid)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 // INsertLogPwdPair - writes the login/password pair in database.
 func (c *ClientPostgres) InsertLogPwdPair(ctx context.Context, model models.ReqLogPwdModel) (models.InsertRespModel, error) {
 	res := models.InsertRespModel{}
+	var id int32
+	q := `INSERT INTO log_pwd_data(uuid, type, title, login, password, tag, comment) 
+	VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;`
+	if err := c.Pool.QueryRow(ctx, q, model.UUID, model.TechData.Title, model.Data.Login,
+		model.Data.Password, model.TechData.Tag, model.TechData.Comment).Scan(&id); err != nil {
+		return res, err
+	}
+	res.ID = id
+	res.Title = model.TechData.Title
 	return res, nil
 }
 
 // INsertCardData - writes the card data in database.
 func (c *ClientPostgres) InsertCardData(ctx context.Context, model models.ReqCardModel) (models.InsertRespModel, error) {
 	res := models.InsertRespModel{}
+	var id int32
+	q := `INSERT INTO card_data(uuid, type, title, num, date, cvc, first_name, last_name, tag, comment) 
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;`
+	if err := c.Pool.QueryRow(ctx, q, model.UUID, model.TechData.Type, model.TechData.Title, model.Data.Num, model.Data.Date,
+		model.Data.CVC, model.Data.FirstName, model.Data.LastName, model.TechData.Tag, model.TechData.Comment).Scan(&id); err != nil {
+		return res, err
+	}
+	res.ID = id
+	res.Title = model.TechData.Title
 	return res, nil
 }
 
 // InsertTextData - writes the some text data in database.
 func (c *ClientPostgres) InsertTextData(ctx context.Context, model models.ReqTextModel) (models.InsertRespModel, error) {
 	res := models.InsertRespModel{}
+	var id int32
+	q := `INSERT INTO text_data(uuid, type, title, data, tag, comment) 
+	VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;`
+	if err := c.Pool.QueryRow(ctx, q, model.UUID, model.TechData.Type, model.TechData.Title, model.Data.Data,
+		model.TechData.Tag, model.TechData.Comment).Scan(&id); err != nil {
+		return res, err
+	}
+	res.ID = id
+	res.Title = model.TechData.Title
 	return res, nil
 }
 
 // InsertBinaryData - writes the some binary data in database.
 func (c *ClientPostgres) InsertBinaryData(ctx context.Context, model models.ReqBinaryModel) (models.InsertRespModel, error) {
 	res := models.InsertRespModel{}
+	var id int32
+	q := `INSERT INTO binary_data(uuid, type, title, data, tag, comment) 
+	VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;`
+	if err := c.Pool.QueryRow(ctx, q, model.UUID, model.TechData.Type, model.TechData.Title, model.Data.Data,
+		model.TechData.Tag, model.TechData.Comment).Scan(&id); err != nil {
+		return res, err
+	}
+	res.ID = id
+	res.Title = model.TechData.Title
 	return res, nil
 }
 
 // SelectLogPwdPair - get a login/password pair from database.
 func (c *ClientPostgres) SelectLogPwdPair(ctx context.Context, model models.IDModel) (models.RespLogPwdModel, error) {
-	respModel := models.RespLogPwdModel{}
-	return respModel, nil
+	res := models.RespLogPwdModel{}
+
+	q := `SELECT login, password, title, tag, comment, type FROM log_pwd_data WHERE id = $1 AND uuid = $2;`
+	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Login, &res.Data.Password,
+		&res.TechData.Title, &res.TechData.Tag, &res.TechData.Comment, &res.TechData.Type); err != nil {
+		return res, err
+	}
+
+	return res, nil
 }
 
 // SelectCardData - get a card data from database.
 func (c *ClientPostgres) SelectCardData(ctx context.Context, model models.IDModel) (models.RespCardModel, error) {
-	respModel := models.RespCardModel{}
-	return respModel, nil
+	res := models.RespCardModel{}
+
+	q := `SELECT num, date, cvc, first_name, last_name, title, tag, comment, type FROM card_data WHERE id = $1 AND uuid = $2;`
+	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Num, &res.Data.Date,
+		&res.Data.CVC, &res.Data.FirstName, &res.Data.LastName, &res.TechData.Title, &res.TechData.Tag,
+		&res.TechData.Comment, &res.TechData.Type); err != nil {
+		return res, err
+	}
+
+	return res, nil
 }
 
 // SelectTextData - get some text data from database.
 func (c *ClientPostgres) SelectTextData(ctx context.Context, model models.IDModel) (models.RespTextModel, error) {
-	respModel := models.RespTextModel{}
-	return respModel, nil
+	res := models.RespTextModel{}
+
+	q := `SELECT data, title, tag, comment, type FROM text_data WHERE id = $1 AND uuid = $2;`
+	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Data, &res.TechData.Title,
+		&res.TechData.Tag, &res.TechData.Comment, &res.TechData.Type); err != nil {
+		return res, err
+	}
+
+	return res, nil
 }
 
 // SelectBinaryData - get some binary data from database.
 func (c *ClientPostgres) SelectBinaryData(ctx context.Context, model models.IDModel) (models.RespBinaryModel, error) {
-	respModel := models.RespBinaryModel{}
-	return respModel, nil
+	res := models.RespBinaryModel{}
+
+	q := `SELECT data, title, tag, comment, type FROM binary_data WHERE id = $1 AND uuid = $2;`
+	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Data, &res.TechData.Title,
+		&res.TechData.Tag, &res.TechData.Comment, &res.TechData.Type); err != nil {
+		return res, err
+	}
+
+	return res, nil
 }
 
 // SelectAllInfoUser - get all info by current user.
 func (c *ClientPostgres) SelectAllInfoUser(ctx context.Context, uuid string) ([]models.DataRecordModel, error) {
-	return nil, nil
+	res := make([]models.DataRecordModel, 0)
+
+	q := []string{
+		`SELECT title, tag, comment, type, id FROM log_pwd_data WHERE uuid = $1;`,
+		`SELECT title, tag, comment, type, id FROM card_data WHERE uuid = $1;`,
+		`SELECT title, tag, comment, type, id FROM text_data WHERE uuid = $1;`,
+		`SELECT title, tag, comment, type, id FROM binary_data WHERE uuid = $1;`,
+	}
+
+	for _, query := range q {
+		rows, err := c.Pool.Query(ctx, query, uuid)
+		if err != nil {
+			return res, err
+		}
+		for rows.Next() {
+			record := models.DataRecordModel{}
+			err := rows.Scan(&record.Title, &record.Tag, &record.Comment, &record.Type, &record.ID)
+			if err != nil {
+				return res, err
+			}
+			res = append(res, record)
+		}
+	}
+	return res, nil
 }
 
 // DeleteRecord - delete current record from database.
 func (c *ClientPostgres) DeleteRecord(ctx context.Context, model models.IDModel) error {
+	q := `UPDATE $1 SET deleted = true WHERE id = $2 AND uuid = $3;`
+	exec := func(table string) error {
+		_, err := c.Pool.Exec(ctx, q, table, model.ID, model.UUID)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	switch model.Type {
+	case typedata.LoginPasswordDataType:
+		err := exec("log_pwd_data")
+		if err != nil {
+			return err
+		}
+	case typedata.CardDataType:
+		err := exec("card_data")
+		if err != nil {
+			return err
+		}
+	case typedata.TextDataType:
+		err := exec("text_data")
+		if err != nil {
+			return err
+		}
+	case typedata.BinaryDataType:
+		err := exec("binary_data")
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
