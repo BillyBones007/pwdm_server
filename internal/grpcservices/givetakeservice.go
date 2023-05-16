@@ -2,11 +2,11 @@ package grpcservices
 
 import (
 	"context"
+	"encoding/hex"
 
 	"github.com/BillyBones007/pwdm_server/internal/customerror"
 	"github.com/BillyBones007/pwdm_server/internal/storage"
 	"github.com/BillyBones007/pwdm_server/internal/storage/models"
-	"github.com/BillyBones007/pwdm_server/internal/tools/metadatatools"
 	"github.com/BillyBones007/pwdm_server/internal/tools/tokentools"
 	pb "github.com/BillyBones007/pwdm_service_api/api"
 	"google.golang.org/grpc/codes"
@@ -28,7 +28,8 @@ func NewGiveTakeService(r storage.Storage, tt *tokentools.JWTTools) *GiveTakeSer
 // InsLogPwd - send the login and password data to the server.
 func (g *GiveTakeService) InsLogPwd(ctx context.Context, in *pb.InsertLoginPasswordReq) (*pb.InsertResp, error) {
 	resp := &pb.InsertResp{}
-	uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	// uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	uuid := ctx.Value(UUIDKey).(string)
 	if uuid == "" {
 		resp.Error = customerror.ErrMissingToken
 		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
@@ -52,7 +53,8 @@ func (g *GiveTakeService) InsLogPwd(ctx context.Context, in *pb.InsertLoginPassw
 // InsCard - send the card data to the server.
 func (g *GiveTakeService) InsCard(ctx context.Context, in *pb.InsertCardReq) (*pb.InsertResp, error) {
 	resp := &pb.InsertResp{}
-	uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	// uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	uuid := ctx.Value(UUIDKey).(string)
 	if uuid == "" {
 		resp.Error = customerror.ErrMissingToken
 		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
@@ -76,7 +78,8 @@ func (g *GiveTakeService) InsCard(ctx context.Context, in *pb.InsertCardReq) (*p
 // InsText - send the text data to the server.
 func (g *GiveTakeService) InsText(ctx context.Context, in *pb.InsertTextReq) (*pb.InsertResp, error) {
 	resp := &pb.InsertResp{}
-	uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	// uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	uuid := ctx.Value(UUIDKey).(string)
 	if uuid == "" {
 		resp.Error = customerror.ErrMissingToken
 		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
@@ -100,14 +103,16 @@ func (g *GiveTakeService) InsText(ctx context.Context, in *pb.InsertTextReq) (*p
 // InsBinary - send the binary data to the server.
 func (g *GiveTakeService) InsBinary(ctx context.Context, in *pb.InsertBinaryReq) (*pb.InsertResp, error) {
 	resp := &pb.InsertResp{}
-	uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	// uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	uuid := ctx.Value(UUIDKey).(string)
 	if uuid == "" {
 		resp.Error = customerror.ErrMissingToken
 		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
 	}
 
 	modelTechData := models.ReqTechDataModel{Title: in.Title, Tag: in.Tag, Comment: in.Comment, Type: in.Type}
-	modelBinary := models.BinaryDataModel{Data: in.Data}
+	strData := hex.EncodeToString(in.Data)
+	modelBinary := models.BinaryDataModel{Data: strData}
 	modelInsBinary := models.ReqBinaryModel{UUID: uuid, Data: modelBinary, TechData: modelTechData}
 
 	res, err := g.Rep.InsertBinaryData(ctx, modelInsBinary)
@@ -124,7 +129,8 @@ func (g *GiveTakeService) InsBinary(ctx context.Context, in *pb.InsertBinaryReq)
 // GetLogPwd - get the login and password data from server.
 func (g *GiveTakeService) GetLogPwd(ctx context.Context, in *pb.GetItemReq) (*pb.GetLoginPasswordResp, error) {
 	resp := &pb.GetLoginPasswordResp{}
-	uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	// uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	uuid := ctx.Value(UUIDKey).(string)
 	if uuid == "" {
 		resp.Error = customerror.ErrMissingToken
 		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
@@ -149,7 +155,8 @@ func (g *GiveTakeService) GetLogPwd(ctx context.Context, in *pb.GetItemReq) (*pb
 // GetCard - get the card data from server.
 func (g *GiveTakeService) GetCard(ctx context.Context, in *pb.GetItemReq) (*pb.GetCardResp, error) {
 	resp := &pb.GetCardResp{}
-	uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	// uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	uuid := ctx.Value(UUIDKey).(string)
 	if uuid == "" {
 		resp.Error = customerror.ErrMissingToken
 		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
@@ -177,7 +184,8 @@ func (g *GiveTakeService) GetCard(ctx context.Context, in *pb.GetItemReq) (*pb.G
 // GetText - get the text data from server.
 func (g *GiveTakeService) GetText(ctx context.Context, in *pb.GetItemReq) (*pb.GetTextResp, error) {
 	resp := &pb.GetTextResp{}
-	uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	// uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	uuid := ctx.Value(UUIDKey).(string)
 	if uuid == "" {
 		resp.Error = customerror.ErrMissingToken
 		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
@@ -201,7 +209,8 @@ func (g *GiveTakeService) GetText(ctx context.Context, in *pb.GetItemReq) (*pb.G
 // GetBinary - get the binary data from server.
 func (g *GiveTakeService) GetBinary(ctx context.Context, in *pb.GetItemReq) (*pb.GetBinaryResp, error) {
 	resp := &pb.GetBinaryResp{}
-	uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	// uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	uuid := ctx.Value(UUIDKey).(string)
 	if uuid == "" {
 		resp.Error = customerror.ErrMissingToken
 		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
@@ -213,10 +222,13 @@ func (g *GiveTakeService) GetBinary(ctx context.Context, in *pb.GetItemReq) (*pb
 		resp.Error = err.Error()
 		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
 	}
-
+	byteData, err := hex.DecodeString(res.Data.Data)
+	if err != nil {
+		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
+	}
 	resp.Id = res.TechData.ID
 	resp.Title = res.TechData.Title
-	resp.Data = res.Data.Data
+	resp.Data = byteData
 	resp.Tag = res.TechData.Tag
 	resp.Comment = res.TechData.Comment
 	return resp, nil

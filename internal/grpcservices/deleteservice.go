@@ -6,7 +6,6 @@ import (
 	"github.com/BillyBones007/pwdm_server/internal/customerror"
 	"github.com/BillyBones007/pwdm_server/internal/storage"
 	"github.com/BillyBones007/pwdm_server/internal/storage/models"
-	"github.com/BillyBones007/pwdm_server/internal/tools/metadatatools"
 	"github.com/BillyBones007/pwdm_server/internal/tools/tokentools"
 	pb "github.com/BillyBones007/pwdm_service_api/api"
 	"google.golang.org/grpc/codes"
@@ -28,7 +27,8 @@ func NewDeleteService(r storage.Storage, tt *tokentools.JWTTools) *DeleteService
 // DelItem - delete one item.
 func (d *DeleteService) DelItem(ctx context.Context, in *pb.DeleteItemReq) (*pb.DeleteResp, error) {
 	resp := &pb.DeleteResp{}
-	uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	// uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	uuid := ctx.Value(UUIDKey).(string)
 	if uuid == "" {
 		resp.Error = customerror.ErrMissingToken
 		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
@@ -45,7 +45,8 @@ func (d *DeleteService) DelItem(ctx context.Context, in *pb.DeleteItemReq) (*pb.
 // DelAll - delete all data for current user.
 func (d *DeleteService) DelAll(ctx context.Context, in *pb.DeleteAllReq) (*pb.DeleteResp, error) {
 	resp := &pb.DeleteResp{}
-	uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	// uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	uuid := ctx.Value(UUIDKey).(string)
 	if uuid == "" {
 		resp.Error = customerror.ErrMissingToken
 		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)

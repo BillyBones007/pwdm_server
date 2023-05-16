@@ -33,6 +33,7 @@ func (a *AuthService) Create(ctx context.Context, in *pb.AuthReq) (*pb.AuthResp,
 	// checks login a new user
 	existFlag, err := a.Rep.UserIsExists(ctx, user)
 	if err != nil {
+		// fmt.Println("ERROR: From UserIsExists")
 		resp.Error = customerror.ErrCreateUser
 		return resp, err
 	}
@@ -45,6 +46,7 @@ func (a *AuthService) Create(ctx context.Context, in *pb.AuthReq) (*pb.AuthResp,
 	// create a new user
 	uuid, err = a.Rep.CreateUser(ctx, user)
 	if err != nil {
+		// fmt.Println("ERROR: From CreateUser")
 		resp.Error = err.Error()
 		return resp, err
 	}

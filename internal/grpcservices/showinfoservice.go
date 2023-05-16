@@ -5,7 +5,6 @@ import (
 
 	"github.com/BillyBones007/pwdm_server/internal/customerror"
 	"github.com/BillyBones007/pwdm_server/internal/storage"
-	"github.com/BillyBones007/pwdm_server/internal/tools/metadatatools"
 	"github.com/BillyBones007/pwdm_server/internal/tools/tokentools"
 	pb "github.com/BillyBones007/pwdm_service_api/api"
 	"google.golang.org/grpc/codes"
@@ -27,7 +26,8 @@ func NewShowInfoService(r storage.Storage, tt *tokentools.JWTTools) *ShowInfoSer
 // GetInfo - get information for current user.
 func (s *ShowInfoService) GetInfo(ctx context.Context, in *pb.Empty) (*pb.ShowItemsResp, error) {
 	resp := &pb.ShowItemsResp{}
-	uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	// uuid := metadatatools.GetUUIDFromMetadata(ctx)
+	uuid := ctx.Value(UUIDKey).(string)
 	if uuid == "" {
 		return nil, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
 	}

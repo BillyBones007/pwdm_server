@@ -1,4 +1,4 @@
-package typedata
+package datatypes
 
 const (
 	LoginPasswordDataType int32 = iota + 1

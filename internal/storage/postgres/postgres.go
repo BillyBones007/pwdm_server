@@ -7,10 +7,10 @@ import (
 	"log"
 
 	"github.com/BillyBones007/pwdm_server/internal/customerror"
+	"github.com/BillyBones007/pwdm_server/internal/datatypes"
 	"github.com/BillyBones007/pwdm_server/internal/storage/models"
 	"github.com/BillyBones007/pwdm_server/internal/tools/convertuuid"
 	"github.com/BillyBones007/pwdm_server/internal/tools/encpass"
-	"github.com/BillyBones007/pwdm_server/internal/typedata"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -63,8 +63,9 @@ func (c *ClientPostgres) Close() {
 // CreateUser - creating a new user in database.
 func (c *ClientPostgres) CreateUser(ctx context.Context, model models.UserModel) (string, error) {
 	var uuid string
-	exUser, err := c.ValidUser(ctx, model)
+	exUser, err := c.UserIsExists(ctx, model)
 	if err != nil {
+		fmt.Printf("ERROR: From ValidUser: %s\n", err)
 		return "", err
 	}
 
@@ -79,6 +80,7 @@ func (c *ClientPostgres) CreateUser(ctx context.Context, model models.UserModel)
 
 	q := "INSERT INTO users (uuid, login, password) VALUES (uuid_generate_v4(), $1, $2) RETURNING uuid;"
 	if err := c.Pool.QueryRow(ctx, q, model.Login, encPass).Scan(&uuid); err != nil {
+		fmt.Printf("ERROR: From CreateUser: %s\n", err)
 		return "", err
 	}
 
@@ -139,7 +141,7 @@ func (c *ClientPostgres) InsertLogPwdPair(ctx context.Context, model models.ReqL
 	var id int32
 	q := `INSERT INTO log_pwd_data(uuid, type, title, login, password, tag, comment) 
 	VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;`
-	if err := c.Pool.QueryRow(ctx, q, model.UUID, model.TechData.Title, model.Data.Login,
+	if err := c.Pool.QueryRow(ctx, q, model.UUID, model.TechData.Type, model.TechData.Title, model.Data.Login,
 		model.Data.Password, model.TechData.Tag, model.TechData.Comment).Scan(&id); err != nil {
 		return res, err
 	}
@@ -156,6 +158,7 @@ func (c *ClientPostgres) InsertCardData(ctx context.Context, model models.ReqCar
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;`
 	if err := c.Pool.QueryRow(ctx, q, model.UUID, model.TechData.Type, model.TechData.Title, model.Data.Num, model.Data.Date,
 		model.Data.CVC, model.Data.FirstName, model.Data.LastName, model.TechData.Tag, model.TechData.Comment).Scan(&id); err != nil {
+		fmt.Printf("ERROR: From InsertCardData: %s\n", err)
 		return res, err
 	}
 	res.ID = id
@@ -171,6 +174,7 @@ func (c *ClientPostgres) InsertTextData(ctx context.Context, model models.ReqTex
 	VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;`
 	if err := c.Pool.QueryRow(ctx, q, model.UUID, model.TechData.Type, model.TechData.Title, model.Data.Data,
 		model.TechData.Tag, model.TechData.Comment).Scan(&id); err != nil {
+		fmt.Printf("ERROR: From InsertTextData: %s\n", err)
 		return res, err
 	}
 	res.ID = id
@@ -186,6 +190,7 @@ func (c *ClientPostgres) InsertBinaryData(ctx context.Context, model models.ReqB
 	VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;`
 	if err := c.Pool.QueryRow(ctx, q, model.UUID, model.TechData.Type, model.TechData.Title, model.Data.Data,
 		model.TechData.Tag, model.TechData.Comment).Scan(&id); err != nil {
+		fmt.Printf("ERROR: From InsertBinaryData: %s\n", err)
 		return res, err
 	}
 	res.ID = id
@@ -200,6 +205,7 @@ func (c *ClientPostgres) SelectLogPwdPair(ctx context.Context, model models.IDMo
 	q := `SELECT login, password, title, tag, comment, type FROM log_pwd_data WHERE id = $1 AND uuid = $2;`
 	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Login, &res.Data.Password,
 		&res.TechData.Title, &res.TechData.Tag, &res.TechData.Comment, &res.TechData.Type); err != nil {
+		fmt.Printf("ERROR: From SelectLogPwdPair: %s\n", err)
 		return res, err
 	}
 
@@ -214,6 +220,7 @@ func (c *ClientPostgres) SelectCardData(ctx context.Context, model models.IDMode
 	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Num, &res.Data.Date,
 		&res.Data.CVC, &res.Data.FirstName, &res.Data.LastName, &res.TechData.Title, &res.TechData.Tag,
 		&res.TechData.Comment, &res.TechData.Type); err != nil {
+		fmt.Printf("ERROR: From SelectCardData: %s\n", err)
 		return res, err
 	}
 
@@ -223,10 +230,10 @@ func (c *ClientPostgres) SelectCardData(ctx context.Context, model models.IDMode
 // SelectTextData - get some text data from database.
 func (c *ClientPostgres) SelectTextData(ctx context.Context, model models.IDModel) (models.RespTextModel, error) {
 	res := models.RespTextModel{}
-
 	q := `SELECT data, title, tag, comment, type FROM text_data WHERE id = $1 AND uuid = $2;`
 	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Data, &res.TechData.Title,
 		&res.TechData.Tag, &res.TechData.Comment, &res.TechData.Type); err != nil {
+		fmt.Printf("ERROR: From SelectTextData: %s\n", err)
 		return res, err
 	}
 
@@ -240,6 +247,7 @@ func (c *ClientPostgres) SelectBinaryData(ctx context.Context, model models.IDMo
 	q := `SELECT data, title, tag, comment, type FROM binary_data WHERE id = $1 AND uuid = $2;`
 	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Data, &res.TechData.Title,
 		&res.TechData.Tag, &res.TechData.Comment, &res.TechData.Type); err != nil {
+		fmt.Printf("ERROR: From SelectBinaryData: %s\n", err)
 		return res, err
 	}
 
@@ -266,6 +274,7 @@ func (c *ClientPostgres) SelectAllInfoUser(ctx context.Context, uuid string) ([]
 			record := models.DataRecordModel{}
 			err := rows.Scan(&record.Title, &record.Tag, &record.Comment, &record.Type, &record.ID)
 			if err != nil {
+				fmt.Printf("ERROR: From SelectAllInfoUser: %s\n", err)
 				return res, err
 			}
 			res = append(res, record)
@@ -286,22 +295,22 @@ func (c *ClientPostgres) DeleteRecord(ctx context.Context, model models.IDModel)
 	}
 
 	switch model.Type {
-	case typedata.LoginPasswordDataType:
+	case datatypes.LoginPasswordDataType:
 		err := exec("log_pwd_data")
 		if err != nil {
 			return err
 		}
-	case typedata.CardDataType:
+	case datatypes.CardDataType:
 		err := exec("card_data")
 		if err != nil {
 			return err
 		}
-	case typedata.TextDataType:
+	case datatypes.TextDataType:
 		err := exec("text_data")
 		if err != nil {
 			return err
 		}
-	case typedata.BinaryDataType:
+	case datatypes.BinaryDataType:
 		err := exec("binary_data")
 		if err != nil {
 			return err

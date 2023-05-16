@@ -128,5 +128,6 @@ type TextDataModel struct {
 
 // BinaryDataModel - model for binary data.
 type BinaryDataModel struct {
-	Data []byte // some binary data
+	// Data []byte // some binary data
+	Data string // in the database, the data is stored in text format
 }
