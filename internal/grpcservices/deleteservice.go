@@ -34,26 +34,8 @@ func (d *DeleteService) DelItem(ctx context.Context, in *pb.DeleteItemReq) (*pb.
 		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
 	}
 
-	modelDelItem := models.IDModel{ID: in.Id, UUID: uuid}
+	modelDelItem := models.IDModel{ID: in.Id, UUID: uuid, Type: in.Type}
 	if err := d.Rep.DeleteRecord(ctx, modelDelItem); err != nil {
-		resp.Error = err.Error()
-		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
-	}
-	return resp, nil
-}
-
-// DelAll - delete all data for current user.
-func (d *DeleteService) DelAll(ctx context.Context, in *pb.DeleteAllReq) (*pb.DeleteResp, error) {
-	resp := &pb.DeleteResp{}
-	// uuid := metadatatools.GetUUIDFromMetadata(ctx)
-	uuid := ctx.Value(UUIDKey).(string)
-	if uuid == "" {
-		resp.Error = customerror.ErrMissingToken
-		return resp, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
-	}
-
-	modelDelAll := models.ListRecordsModel{ListID: in.ListId, UUID: uuid}
-	if err := d.Rep.DeleteAllRecords(ctx, modelDelAll); err != nil {
 		resp.Error = err.Error()
 		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
 	}

@@ -202,7 +202,7 @@ func (c *ClientPostgres) InsertBinaryData(ctx context.Context, model models.ReqB
 func (c *ClientPostgres) SelectLogPwdPair(ctx context.Context, model models.IDModel) (models.RespLogPwdModel, error) {
 	res := models.RespLogPwdModel{}
 
-	q := `SELECT login, password, title, tag, comment, type FROM log_pwd_data WHERE id = $1 AND uuid = $2;`
+	q := `SELECT login, password, title, tag, comment, type FROM log_pwd_data WHERE id = $1 AND uuid = $2 AND deleted = false;`
 	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Login, &res.Data.Password,
 		&res.TechData.Title, &res.TechData.Tag, &res.TechData.Comment, &res.TechData.Type); err != nil {
 		fmt.Printf("ERROR: From SelectLogPwdPair: %s\n", err)
@@ -216,7 +216,7 @@ func (c *ClientPostgres) SelectLogPwdPair(ctx context.Context, model models.IDMo
 func (c *ClientPostgres) SelectCardData(ctx context.Context, model models.IDModel) (models.RespCardModel, error) {
 	res := models.RespCardModel{}
 
-	q := `SELECT num, date, cvc, first_name, last_name, title, tag, comment, type FROM card_data WHERE id = $1 AND uuid = $2;`
+	q := `SELECT num, date, cvc, first_name, last_name, title, tag, comment, type FROM card_data WHERE id = $1 AND uuid = $2 AND deleted = false;`
 	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Num, &res.Data.Date,
 		&res.Data.CVC, &res.Data.FirstName, &res.Data.LastName, &res.TechData.Title, &res.TechData.Tag,
 		&res.TechData.Comment, &res.TechData.Type); err != nil {
@@ -230,7 +230,7 @@ func (c *ClientPostgres) SelectCardData(ctx context.Context, model models.IDMode
 // SelectTextData - get some text data from database.
 func (c *ClientPostgres) SelectTextData(ctx context.Context, model models.IDModel) (models.RespTextModel, error) {
 	res := models.RespTextModel{}
-	q := `SELECT data, title, tag, comment, type FROM text_data WHERE id = $1 AND uuid = $2;`
+	q := `SELECT data, title, tag, comment, type FROM text_data WHERE id = $1 AND uuid = $2 AND deleted = false;`
 	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Data, &res.TechData.Title,
 		&res.TechData.Tag, &res.TechData.Comment, &res.TechData.Type); err != nil {
 		fmt.Printf("ERROR: From SelectTextData: %s\n", err)
@@ -244,7 +244,7 @@ func (c *ClientPostgres) SelectTextData(ctx context.Context, model models.IDMode
 func (c *ClientPostgres) SelectBinaryData(ctx context.Context, model models.IDModel) (models.RespBinaryModel, error) {
 	res := models.RespBinaryModel{}
 
-	q := `SELECT data, title, tag, comment, type FROM binary_data WHERE id = $1 AND uuid = $2;`
+	q := `SELECT data, title, tag, comment, type FROM binary_data WHERE id = $1 AND uuid = $2 AND deleted = false;`
 	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Data, &res.TechData.Title,
 		&res.TechData.Tag, &res.TechData.Comment, &res.TechData.Type); err != nil {
 		fmt.Printf("ERROR: From SelectBinaryData: %s\n", err)
@@ -259,10 +259,10 @@ func (c *ClientPostgres) SelectAllInfoUser(ctx context.Context, uuid string) ([]
 	res := make([]models.DataRecordModel, 0)
 
 	q := []string{
-		`SELECT title, tag, comment, type, id FROM log_pwd_data WHERE uuid = $1;`,
-		`SELECT title, tag, comment, type, id FROM card_data WHERE uuid = $1;`,
-		`SELECT title, tag, comment, type, id FROM text_data WHERE uuid = $1;`,
-		`SELECT title, tag, comment, type, id FROM binary_data WHERE uuid = $1;`,
+		`SELECT title, tag, comment, type, id FROM log_pwd_data WHERE uuid = $1 AND deleted = false;`,
+		`SELECT title, tag, comment, type, id FROM card_data WHERE uuid = $1 AND deleted = false;`,
+		`SELECT title, tag, comment, type, id FROM text_data WHERE uuid = $1 AND deleted = false;`,
+		`SELECT title, tag, comment, type, id FROM binary_data WHERE uuid = $1 AND deleted = false;`,
 	}
 
 	for _, query := range q {
@@ -285,36 +285,39 @@ func (c *ClientPostgres) SelectAllInfoUser(ctx context.Context, uuid string) ([]
 
 // DeleteRecord - delete current record from database.
 func (c *ClientPostgres) DeleteRecord(ctx context.Context, model models.IDModel) error {
-	q := `UPDATE $1 SET deleted = true WHERE id = $2 AND uuid = $3;`
-	exec := func(table string) error {
-		_, err := c.Pool.Exec(ctx, q, table, model.ID, model.UUID)
+	switch model.Type {
+	case datatypes.LoginPasswordDataType:
+		q := `UPDATE log_pwd_data SET deleted = true WHERE id = $1 AND uuid = $2;`
+		_, err := c.Pool.Exec(ctx, q, model.ID, model.UUID)
 		if err != nil {
+			fmt.Printf("ERROR: %s\n", err)
 			return err
 		}
 		return nil
-	}
-
-	switch model.Type {
-	case datatypes.LoginPasswordDataType:
-		err := exec("log_pwd_data")
-		if err != nil {
-			return err
-		}
 	case datatypes.CardDataType:
-		err := exec("card_data")
+		q := `UPDATE card_data SET deleted = true WHERE id = $1 AND uuid = $2;`
+		_, err := c.Pool.Exec(ctx, q, model.ID, model.UUID)
 		if err != nil {
+			fmt.Printf("ERROR: %s\n", err)
 			return err
 		}
+		return nil
 	case datatypes.TextDataType:
-		err := exec("text_data")
+		q := `UPDATE text_data SET deleted = true WHERE id = $1 AND uuid = $2;`
+		_, err := c.Pool.Exec(ctx, q, model.ID, model.UUID)
 		if err != nil {
+			fmt.Printf("ERROR: %s\n", err)
 			return err
 		}
+		return nil
 	case datatypes.BinaryDataType:
-		err := exec("binary_data")
+		q := `UPDATE binary_data SET deleted = true WHERE id = $1 AND uuid = $2;`
+		_, err := c.Pool.Exec(ctx, q, model.ID, model.UUID)
 		if err != nil {
+			fmt.Printf("ERROR: %s\n", err)
 			return err
 		}
+		return nil
 	}
 
 	return nil
