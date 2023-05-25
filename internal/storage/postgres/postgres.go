@@ -60,7 +60,6 @@ func (c *ClientPostgres) createTable() error {
 // (c *ClientPostgres) Close - close the pool connections.
 func (c *ClientPostgres) Close() {
 	c.Pool.Close()
-	c.Logger.Info("Pool connections is closed")
 	fmt.Println("Pool connections is closed")
 }
 
