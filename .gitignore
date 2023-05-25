@@ -1,0 +1,7 @@
+# IDEs directories
+
+.idea
+.vscode
+
+# logs
+cmd/pwdm_server/server.log

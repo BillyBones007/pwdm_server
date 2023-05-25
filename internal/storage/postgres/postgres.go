@@ -15,12 +15,14 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/sirupsen/logrus"
 )
 
 // ClientPostgres - type for working with PostgreSQL.
 type ClientPostgres struct {
 	Pool     *pgxpool.Pool
 	ConfigCP *pgxpool.Config
+	Logger   *logrus.Logger
 }
 
 // NewClientPostgres - returns a pointer to the ClientPostgres.
@@ -45,10 +47,11 @@ func NewClientPostgres(dst string) *ClientPostgres {
 func (c *ClientPostgres) createTable() error {
 	m, err := migrate.New("file://migrations/postgres", c.ConfigCP.ConnString())
 	if err != nil {
-		log.Fatal(err)
+		c.Logger.WithField("err", err).Fatal("Migration error")
 	}
 	err = m.Up()
 	if err != migrate.ErrNoChange {
+		c.Logger.WithField("err", err).Error("Migration error")
 		return err
 	}
 	return nil
@@ -57,6 +60,7 @@ func (c *ClientPostgres) createTable() error {
 // (c *ClientPostgres) Close - close the pool connections.
 func (c *ClientPostgres) Close() {
 	c.Pool.Close()
+	c.Logger.Info("Pool connections is closed")
 	fmt.Println("Pool connections is closed")
 }
 
@@ -65,22 +69,20 @@ func (c *ClientPostgres) CreateUser(ctx context.Context, model models.UserModel)
 	var uuid string
 	exUser, err := c.UserIsExists(ctx, model)
 	if err != nil {
-		fmt.Printf("ERROR: From ValidUser: %s\n", err)
 		return "", err
 	}
 
 	if exUser {
-		return "", fmt.Errorf(customerror.ErrUserIsExist)
+		return "", customerror.ErrUserIsExists
 	}
 
 	encPass, err := encpass.EncPassword(model.Password)
 	if err != nil {
-		return "", fmt.Errorf(customerror.ErrInternalServer)
+		return "", err
 	}
 
 	q := "INSERT INTO users (uuid, login, password) VALUES (uuid_generate_v4(), $1, $2) RETURNING uuid;"
 	if err := c.Pool.QueryRow(ctx, q, model.Login, encPass).Scan(&uuid); err != nil {
-		fmt.Printf("ERROR: From CreateUser: %s\n", err)
 		return "", err
 	}
 
@@ -158,7 +160,6 @@ func (c *ClientPostgres) InsertCardData(ctx context.Context, model models.ReqCar
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;`
 	if err := c.Pool.QueryRow(ctx, q, model.UUID, model.TechData.Type, model.TechData.Title, model.Data.Num, model.Data.Date,
 		model.Data.CVC, model.Data.FirstName, model.Data.LastName, model.TechData.Tag, model.TechData.Comment).Scan(&id); err != nil {
-		fmt.Printf("ERROR: From InsertCardData: %s\n", err)
 		return res, err
 	}
 	res.ID = id
@@ -174,7 +175,6 @@ func (c *ClientPostgres) InsertTextData(ctx context.Context, model models.ReqTex
 	VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;`
 	if err := c.Pool.QueryRow(ctx, q, model.UUID, model.TechData.Type, model.TechData.Title, model.Data.Data,
 		model.TechData.Tag, model.TechData.Comment).Scan(&id); err != nil {
-		fmt.Printf("ERROR: From InsertTextData: %s\n", err)
 		return res, err
 	}
 	res.ID = id
@@ -190,7 +190,6 @@ func (c *ClientPostgres) InsertBinaryData(ctx context.Context, model models.ReqB
 	VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;`
 	if err := c.Pool.QueryRow(ctx, q, model.UUID, model.TechData.Type, model.TechData.Title, model.Data.Data,
 		model.TechData.Tag, model.TechData.Comment).Scan(&id); err != nil {
-		fmt.Printf("ERROR: From InsertBinaryData: %s\n", err)
 		return res, err
 	}
 	res.ID = id
@@ -205,7 +204,6 @@ func (c *ClientPostgres) SelectLogPwdPair(ctx context.Context, model models.IDMo
 	q := `SELECT login, password, title, tag, comment, type FROM log_pwd_data WHERE id = $1 AND uuid = $2 AND deleted = false;`
 	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Login, &res.Data.Password,
 		&res.TechData.Title, &res.TechData.Tag, &res.TechData.Comment, &res.TechData.Type); err != nil {
-		fmt.Printf("ERROR: From SelectLogPwdPair: %s\n", err)
 		return res, err
 	}
 
@@ -220,7 +218,6 @@ func (c *ClientPostgres) SelectCardData(ctx context.Context, model models.IDMode
 	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Num, &res.Data.Date,
 		&res.Data.CVC, &res.Data.FirstName, &res.Data.LastName, &res.TechData.Title, &res.TechData.Tag,
 		&res.TechData.Comment, &res.TechData.Type); err != nil {
-		fmt.Printf("ERROR: From SelectCardData: %s\n", err)
 		return res, err
 	}
 
@@ -233,7 +230,6 @@ func (c *ClientPostgres) SelectTextData(ctx context.Context, model models.IDMode
 	q := `SELECT data, title, tag, comment, type FROM text_data WHERE id = $1 AND uuid = $2 AND deleted = false;`
 	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Data, &res.TechData.Title,
 		&res.TechData.Tag, &res.TechData.Comment, &res.TechData.Type); err != nil {
-		fmt.Printf("ERROR: From SelectTextData: %s\n", err)
 		return res, err
 	}
 
@@ -247,7 +243,6 @@ func (c *ClientPostgres) SelectBinaryData(ctx context.Context, model models.IDMo
 	q := `SELECT data, title, tag, comment, type FROM binary_data WHERE id = $1 AND uuid = $2 AND deleted = false;`
 	if err := c.Pool.QueryRow(ctx, q, model.ID, model.UUID).Scan(&res.Data.Data, &res.TechData.Title,
 		&res.TechData.Tag, &res.TechData.Comment, &res.TechData.Type); err != nil {
-		fmt.Printf("ERROR: From SelectBinaryData: %s\n", err)
 		return res, err
 	}
 
@@ -274,7 +269,6 @@ func (c *ClientPostgres) SelectAllInfoUser(ctx context.Context, uuid string) ([]
 			record := models.DataRecordModel{}
 			err := rows.Scan(&record.Title, &record.Tag, &record.Comment, &record.Type, &record.ID)
 			if err != nil {
-				fmt.Printf("ERROR: From SelectAllInfoUser: %s\n", err)
 				return res, err
 			}
 			res = append(res, record)
@@ -290,7 +284,6 @@ func (c *ClientPostgres) DeleteRecord(ctx context.Context, model models.IDModel)
 		q := `UPDATE log_pwd_data SET deleted = true WHERE id = $1 AND uuid = $2;`
 		_, err := c.Pool.Exec(ctx, q, model.ID, model.UUID)
 		if err != nil {
-			fmt.Printf("ERROR: %s\n", err)
 			return err
 		}
 		return nil
@@ -298,7 +291,6 @@ func (c *ClientPostgres) DeleteRecord(ctx context.Context, model models.IDModel)
 		q := `UPDATE card_data SET deleted = true WHERE id = $1 AND uuid = $2;`
 		_, err := c.Pool.Exec(ctx, q, model.ID, model.UUID)
 		if err != nil {
-			fmt.Printf("ERROR: %s\n", err)
 			return err
 		}
 		return nil
@@ -306,7 +298,6 @@ func (c *ClientPostgres) DeleteRecord(ctx context.Context, model models.IDModel)
 		q := `UPDATE text_data SET deleted = true WHERE id = $1 AND uuid = $2;`
 		_, err := c.Pool.Exec(ctx, q, model.ID, model.UUID)
 		if err != nil {
-			fmt.Printf("ERROR: %s\n", err)
 			return err
 		}
 		return nil
@@ -314,7 +305,6 @@ func (c *ClientPostgres) DeleteRecord(ctx context.Context, model models.IDModel)
 		q := `UPDATE binary_data SET deleted = true WHERE id = $1 AND uuid = $2;`
 		_, err := c.Pool.Exec(ctx, q, model.ID, model.UUID)
 		if err != nil {
-			fmt.Printf("ERROR: %s\n", err)
 			return err
 		}
 		return nil

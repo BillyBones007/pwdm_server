@@ -7,6 +7,7 @@ import (
 	"github.com/BillyBones007/pwdm_server/internal/storage"
 	"github.com/BillyBones007/pwdm_server/internal/tools/tokentools"
 	pb "github.com/BillyBones007/pwdm_service_api/api"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -16,27 +17,38 @@ type ShowInfoService struct {
 	pb.UnimplementedShowInfoServiceServer
 	Rep        storage.Storage
 	TokenTools *tokentools.JWTTools
+	Logger     *logrus.Logger
 }
 
 // NewShowInfoService - constructor ShowInfoService.
-func NewShowInfoService(r storage.Storage, tt *tokentools.JWTTools) *ShowInfoService {
-	return &ShowInfoService{Rep: r, TokenTools: tt}
+func NewShowInfoService(r storage.Storage, tt *tokentools.JWTTools, l *logrus.Logger) *ShowInfoService {
+	return &ShowInfoService{Rep: r, TokenTools: tt, Logger: l}
 }
 
 // GetInfo - get information for current user.
 func (s *ShowInfoService) GetInfo(ctx context.Context, in *pb.Empty) (*pb.ShowItemsResp, error) {
 	resp := &pb.ShowItemsResp{}
-	// uuid := metadatatools.GetUUIDFromMetadata(ctx)
 	uuid := ctx.Value(UUIDKey).(string)
 	if uuid == "" {
-		return nil, status.Error(codes.Unauthenticated, customerror.ErrMissingToken)
+		s.Logger.WithFields(logrus.Fields{
+			"service": "show_info_service",
+			"handler": "get_info",
+			"err":     customerror.ErrMissingToken.Error(),
+		}).Trace("Token error")
+		return nil, status.Error(codes.Unauthenticated, customerror.ErrMissingToken.Error())
 	}
 
 	// result list from database
 	listResult, err := s.Rep.SelectAllInfoUser(ctx, uuid)
 	if err != nil {
-		resp.Error = err.Error()
-		return resp, status.Error(codes.Internal, customerror.ErrInternalServer)
+		s.Logger.WithFields(logrus.Fields{
+			"service": "show_info_service",
+			"handler": "get_info",
+			"err":     err,
+			"from":    "storage.select_all_info_user",
+		}).Error("Storage error")
+		resp.Error = customerror.ErrInternalServer.Error()
+		return resp, status.Error(codes.Internal, customerror.ErrInternalServer.Error())
 	}
 
 	listItems := make([]*pb.ShowItemsResp_ItemModel, 0)
