@@ -1,8 +1,11 @@
 package servergrpc
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"net"
+	"os"
 
 	"github.com/BillyBones007/pwdm_server/internal/grpcservices"
 	"github.com/BillyBones007/pwdm_server/internal/logger"
@@ -12,6 +15,7 @@ import (
 	pb "github.com/BillyBones007/pwdm_service_api/api"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 // ServerGRPC - the main structure of the server gRPC.
@@ -35,10 +39,30 @@ func NewServer() *Server {
 	// Interceptors - the pointer to InterceptorsService.
 	// Uses tools for working with jwt.
 	server.Interceptors = grpcservices.NewInterceptorsService(server.TokenTools, server.Logger)
-	server.GRPCServer = grpc.NewServer(grpc.UnaryInterceptor(server.Interceptors.AuthInterceptor))
+
+	cert, err := tls.LoadX509KeyPair("cert/server.crt", "cert/server.key")
+	if err != nil {
+		server.Logger.WithField("err", err).Fatal("Failed to load server certificates")
+	}
+	caCert, err := os.ReadFile("cert/ca.crt")
+	if err != nil {
+		server.Logger.WithField("err", err).Fatal("Failed to load server certificates")
+	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ClientAuth:   tls.NoClientCert,
+		ClientCAs:    caCertPool,
+	}
+	creds := credentials.NewTLS(tlsConfig)
+	opts := []grpc.ServerOption{grpc.Creds(creds), grpc.UnaryInterceptor(server.Interceptors.AuthInterceptor)}
+	server.GRPCServer = grpc.NewServer(opts...)
 
 	pb.RegisterAuthServiceServer(server.GRPCServer, grpcservices.NewAuthService(server.Storage, server.TokenTools, server.Logger))
 	pb.RegisterGiveTakeServiceServer(server.GRPCServer, grpcservices.NewGiveTakeService(server.Storage, server.TokenTools, server.Logger))
+	pb.RegisterUpdateServiceServer(server.GRPCServer, grpcservices.NewUpdateService(server.Storage, server.TokenTools, server.Logger))
 	pb.RegisterDeleteServiceServer(server.GRPCServer, grpcservices.NewDeleteService(server.Storage, server.TokenTools, server.Logger))
 	pb.RegisterShowInfoServiceServer(server.GRPCServer, grpcservices.NewShowInfoService(server.Storage, server.TokenTools, server.Logger))
 

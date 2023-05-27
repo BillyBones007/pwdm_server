@@ -108,12 +108,14 @@ type IDModel struct {
 
 // LogPassModel - model login/password pair.
 type LogPwdModel struct {
+	ID       int32 // id record in database (for update service)
 	Login    string
 	Password string
 }
 
 // CardModel - model card data.
 type CardModel struct {
+	ID        int32  // id record in database (for update service)
 	Num       string // card number
 	Date      string // validity period
 	CVC       string // cvc card code
@@ -123,11 +125,13 @@ type CardModel struct {
 
 // TextDataModel - model for text data.
 type TextDataModel struct {
+	ID   int32  // id record in database (for update service)
 	Data string // some text data
 }
 
 // BinaryDataModel - model for binary data.
 type BinaryDataModel struct {
+	ID int32 // id record in database (for update service)
 	// Data []byte // some binary data
 	Data string // in the database, the data is stored in text format
 }

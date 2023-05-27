@@ -76,6 +76,8 @@ github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230525052618-94c067129110
 github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230525052618-94c067129110/go.mod h1:o8jtvGNLayrawXRb8AXdgwDpwjdCJBYrK78wXxWjN8Q=
 github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230525053905-7dc6636cd779 h1:xZz+2OnUGAQ22MProtxM01LWTmnifmc6HxXpS6W39zQ=
 github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230525053905-7dc6636cd779/go.mod h1:o8jtvGNLayrawXRb8AXdgwDpwjdCJBYrK78wXxWjN8Q=
+github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230527044736-53a6d78519c0 h1:4ZvwfNWi8tN7aWnaUUUk/W6RXLzx72xal3Z1b+iMsHY=
+github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230527044736-53a6d78519c0/go.mod h1:o8jtvGNLayrawXRb8AXdgwDpwjdCJBYrK78wXxWjN8Q=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/ClickHouse/clickhouse-go v1.4.3/go.mod h1:EaI/sW7Azgz9UATzd5ZdZHRUhHgv5+JMS9NSr2smCJI=

@@ -136,7 +136,65 @@ func (c *ClientPostgres) DeleteUser(ctx context.Context, uuid string) error {
 	return nil
 }
 
-// INsertLogPwdPair - writes the login/password pair in database.
+// UpdateLogPwdPair - updates the login/password pair in database.
+func (c *ClientPostgres) UpdateLogPwdPair(ctx context.Context, model models.ReqLogPwdModel) (models.InsertRespModel, error) {
+	res := models.InsertRespModel{}
+	q := `UPDATE log_pwd_data SET title = $1, login = $2, password = $3, tag = $4, comment = $5 WHERE uuid = $6 AND id = $7;`
+	_, err := c.Pool.Exec(ctx, q, model.TechData.Title, model.Data.Login, model.Data.Password, model.TechData.Tag,
+		model.TechData.Comment, model.UUID, model.Data.ID)
+	if err != nil {
+		return res, err
+	}
+	res.ID = model.Data.ID
+	res.Title = model.TechData.Title
+	return res, nil
+}
+
+// UpdateCardData - updates the card data in database.
+func (c *ClientPostgres) UpdateCardData(ctx context.Context, model models.ReqCardModel) (models.InsertRespModel, error) {
+	res := models.InsertRespModel{}
+	q := `UPDATE card_data SET title = $1, num = $2, date = $3, cvc = $4, first_name = $5, last_name = $6, 
+	tag = $7, comment = $8 WHERE uuid = $9 AND id = $10;`
+	_, err := c.Pool.Exec(ctx, q, model.TechData.Title, model.Data.Num, model.Data.Date, model.Data.CVC,
+		model.Data.FirstName, model.Data.LastName, model.TechData.Tag,
+		model.TechData.Comment, model.UUID, model.Data.ID)
+	if err != nil {
+		return res, err
+	}
+	res.ID = model.Data.ID
+	res.Title = model.TechData.Title
+	return res, nil
+}
+
+// UpdateTextData - updates the text data in database.
+func (c *ClientPostgres) UpdateTextData(ctx context.Context, model models.ReqTextModel) (models.InsertRespModel, error) {
+	res := models.InsertRespModel{}
+	q := `UPDATE text_data SET title = $1, data = $2, tag = $3, comment = $4 WHERE uuid = $5 AND id = $6;`
+	_, err := c.Pool.Exec(ctx, q, model.TechData.Title, model.Data.Data, model.TechData.Tag,
+		model.TechData.Comment, model.UUID, model.Data.ID)
+	if err != nil {
+		return res, err
+	}
+	res.ID = model.Data.ID
+	res.Title = model.TechData.Title
+	return res, nil
+}
+
+// UpdateBinaryData - updates the binary data in database.
+func (c *ClientPostgres) UpdateBinaryData(ctx context.Context, model models.ReqBinaryModel) (models.InsertRespModel, error) {
+	res := models.InsertRespModel{}
+	q := `UPDATE binary_data SET title = $1, data = $2, tag = $3, comment = $4 WHERE uuid = $5 AND id = $6;`
+	_, err := c.Pool.Exec(ctx, q, model.TechData.Title, model.Data.Data, model.TechData.Tag,
+		model.TechData.Comment, model.UUID, model.Data.ID)
+	if err != nil {
+		return res, err
+	}
+	res.ID = model.Data.ID
+	res.Title = model.TechData.Title
+	return res, nil
+}
+
+// InsertLogPwdPair - writes the login/password pair in database.
 func (c *ClientPostgres) InsertLogPwdPair(ctx context.Context, model models.ReqLogPwdModel) (models.InsertRespModel, error) {
 	res := models.InsertRespModel{}
 	var id int32

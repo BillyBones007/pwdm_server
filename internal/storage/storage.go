@@ -13,6 +13,10 @@ type Storage interface {
 	UserIsExists(ctx context.Context, model models.UserModel) (bool, error)
 	GetUUID(ctx context.Context, model models.UserModel) (string, error)
 	DeleteUser(ctx context.Context, uuid string) error
+	UpdateLogPwdPair(ctx context.Context, model models.ReqLogPwdModel) (models.InsertRespModel, error)
+	UpdateCardData(ctx context.Context, model models.ReqCardModel) (models.InsertRespModel, error)
+	UpdateTextData(ctx context.Context, model models.ReqTextModel) (models.InsertRespModel, error)
+	UpdateBinaryData(ctx context.Context, model models.ReqBinaryModel) (models.InsertRespModel, error)
 	InsertLogPwdPair(ctx context.Context, model models.ReqLogPwdModel) (models.InsertRespModel, error)
 	InsertCardData(ctx context.Context, model models.ReqCardModel) (models.InsertRespModel, error)
 	InsertTextData(ctx context.Context, model models.ReqTextModel) (models.InsertRespModel, error)

@@ -25,7 +25,7 @@ require (
 )
 
 require (
-	github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230525053905-7dc6636cd779
+	github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230527044736-53a6d78519c0
 	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/sirupsen/logrus v1.9.2

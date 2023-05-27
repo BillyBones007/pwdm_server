@@ -5,3 +5,9 @@
 
 # logs
 cmd/pwdm_server/server.log
+cmd/pwdm_server/cert/ca.crt
+cmd/pwdm_server/cert/server.crt
+cmd/pwdm_server/cert/ca.srl
+cmd/pwdm_server/cert/ca.key
+cmd/pwdm_server/cert/server.key
+cmd/pwdm_server/cert/server.csr
