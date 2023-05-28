@@ -72,10 +72,6 @@ github.com/Azure/go-autorest/autorest/mocks v0.4.1/go.mod h1:LTp+uSrOhSkaKrUy935
 github.com/Azure/go-autorest/logger v0.2.0/go.mod h1:T9E3cAhj2VqvPOtCYAvby9aBXkZmbF5NWuPV8+WeEW8=
 github.com/Azure/go-autorest/logger v0.2.1/go.mod h1:T9E3cAhj2VqvPOtCYAvby9aBXkZmbF5NWuPV8+WeEW8=
 github.com/Azure/go-autorest/tracing v0.6.0/go.mod h1:+vhtPC754Xsa23ID7GlGsrdKBpUA79WCAKPPZVC2DeU=
-github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230525052618-94c067129110 h1:eHmNc+KmmOSAkZKLlNDWkpPSmH6/EiEAEd4Oj8r960U=
-github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230525052618-94c067129110/go.mod h1:o8jtvGNLayrawXRb8AXdgwDpwjdCJBYrK78wXxWjN8Q=
-github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230525053905-7dc6636cd779 h1:xZz+2OnUGAQ22MProtxM01LWTmnifmc6HxXpS6W39zQ=
-github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230525053905-7dc6636cd779/go.mod h1:o8jtvGNLayrawXRb8AXdgwDpwjdCJBYrK78wXxWjN8Q=
 github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230527044736-53a6d78519c0 h1:4ZvwfNWi8tN7aWnaUUUk/W6RXLzx72xal3Z1b+iMsHY=
 github.com/BillyBones007/pwdm_service_api/api v0.0.0-20230527044736-53a6d78519c0/go.mod h1:o8jtvGNLayrawXRb8AXdgwDpwjdCJBYrK78wXxWjN8Q=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
@@ -999,7 +995,6 @@ github.com/sirupsen/logrus v1.4.1/go.mod h1:ni0Sbl8bgC9z8RoU9G6nDWqqs/fq4eDPysMB
 github.com/sirupsen/logrus v1.4.2/go.mod h1:tLMulIdttU9McNUspp0xgXVQah82FyeX6MwdIuYE2rE=
 github.com/sirupsen/logrus v1.6.0/go.mod h1:7uNnSEd1DgxDLC74fIahvMZmmYsHGZGEOFrfsX/uA88=
 github.com/sirupsen/logrus v1.7.0/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
-github.com/sirupsen/logrus v1.8.1 h1:dJKuHgqk1NNQlqoA6BTlM1Wf9DOH3NBjQyu0h9+AZZE=
 github.com/sirupsen/logrus v1.8.1/go.mod h1:yWOB1SBYBC5VeMP7gHvWumXLIWorT60ONWic61uBYv0=
 github.com/sirupsen/logrus v1.9.2 h1:oxx1eChJGI6Uks2ZC4W1zpLlVgqB8ner4EuQwV4Ik1Y=
 github.com/sirupsen/logrus v1.9.2/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=

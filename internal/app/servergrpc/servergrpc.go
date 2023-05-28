@@ -18,7 +18,7 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-// ServerGRPC - the main structure of the server gRPC.
+// Server - the main structure of the server gRPC.
 type Server struct {
 	Config       *ServerConfig
 	Storage      storage.Storage
@@ -34,7 +34,11 @@ func NewServer() *Server {
 	server.Config = InitServerConfig()
 	server.Logger = logger.NewLogger()
 	server.TokenTools = tokentools.NewJWTTools()
-	server.Storage = postgres.NewClientPostgres(server.Config.DSN)
+	stor, err := postgres.NewClientPostgres(server.Config.DSN)
+	if err != nil {
+		server.Logger.WithField("err", err).Fatalf("Failed database: %s", err)
+	}
+	server.Storage = stor
 
 	// Interceptors - the pointer to InterceptorsService.
 	// Uses tools for working with jwt.

@@ -27,6 +27,6 @@ type Storage interface {
 	SelectBinaryData(ctx context.Context, model models.IDModel) (models.RespBinaryModel, error)
 	SelectAllInfoUser(ctx context.Context, uuid string) ([]models.DataRecordModel, error)
 	DeleteRecord(ctx context.Context, model models.IDModel) error
-	DeleteAllRecords(ctx context.Context, model models.ListRecordsModel) error
+	// DeleteAllRecords(ctx context.Context, model models.ListRecordsModel) error
 	Close()
 }

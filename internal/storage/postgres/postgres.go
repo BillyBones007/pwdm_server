@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/BillyBones007/pwdm_server/internal/customerror"
 	"github.com/BillyBones007/pwdm_server/internal/datatypes"
@@ -26,33 +25,35 @@ type ClientPostgres struct {
 }
 
 // NewClientPostgres - returns a pointer to the ClientPostgres.
-func NewClientPostgres(dst string) *ClientPostgres {
-	config, err := pgxpool.ParseConfig(dst)
+func NewClientPostgres(dsn string) (*ClientPostgres, error) {
+	if dsn == "" {
+		return nil, customerror.ErrDSNEmpty
+	}
+	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	cp := ClientPostgres{Pool: pool, ConfigCP: config}
 	err = cp.createTable()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return &cp
+	return &cp, nil
 }
 
 // (c *ClientPostgres) createTable - creates a table when the server starts, if one does not already exist.
 func (c *ClientPostgres) createTable() error {
 	m, err := migrate.New("file://migrations/postgres", c.ConfigCP.ConnString())
 	if err != nil {
-		c.Logger.WithField("err", err).Fatal("Migration error")
+		return customerror.ErrMigrations
 	}
 	err = m.Up()
 	if err != migrate.ErrNoChange {
-		c.Logger.WithField("err", err).Error("Migration error")
-		return err
+		return customerror.ErrMigrations
 	}
 	return nil
 }
@@ -371,6 +372,6 @@ func (c *ClientPostgres) DeleteRecord(ctx context.Context, model models.IDModel)
 }
 
 // DeleteAllRecords - delete all records specified in the list from database.
-func (c *ClientPostgres) DeleteAllRecords(ctx context.Context, model models.ListRecordsModel) error {
-	return nil
-}
+// func (c *ClientPostgres) DeleteAllRecords(ctx context.Context, model models.ListRecordsModel) error {
+// 	return nil
+// }

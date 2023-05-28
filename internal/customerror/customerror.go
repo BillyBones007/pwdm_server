@@ -16,4 +16,6 @@ var (
 	ErrLogIn                error = errors.New("error log in")
 	ErrMissingToken         error = errors.New("missing token")
 	ErrMissingMD            error = errors.New("missing metadata")
+	ErrDSNEmpty             error = errors.New("dsn is empty")
+	ErrMigrations           error = errors.New("migrations error")
 )
