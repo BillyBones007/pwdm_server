@@ -1,0 +1,4 @@
+{
+    "grpc_port": ":3232",
+    "dsn": "postgres://admin:root@localhost:5432/pwdm?sslmode=disable"
+}
